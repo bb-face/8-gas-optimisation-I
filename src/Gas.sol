@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.22;
 
-// 2__084__606
-
-// Error table:
-// a:  "Error in Gas contract - onlyAdminOrOwner modifier : revert happened because the originator of the transaction was not the admin, and furthermore he wasn't the owner of the contract, so he cannot run this function";
-
-error a();
-error c(); //"Gas Contract - Update Payment function - ID must be greater than 0"
+error a(); // "Error in Gas contract - onlyAdminOrOwner modifier : revert happened because the originator of the transaction was not the admin, and furthermore he wasn't the owner of the contract, so he cannot run this function";
+error c(); // "Gas Contract - Update Payment function - ID must be greater than 0"
 error d(); // "Gas Contract - Update Payment function - Amount must be greater than 0"
 error e(); // "Gas Contract - Update Payment function - Administrator must have a valid non zero address"
+error a1(); // "Gas Contract - getPayments function - User must have a valid non zero address"
+error a2(); // "Contract hacked, imposible, call help"
+error a3(); // "Gas Contract - addToWhitelist function -  tier level should not be greater than 255"
 
 contract GasContract {
     uint8 wasLastOdd = 1;
@@ -135,19 +133,14 @@ contract GasContract {
         return false;
     }
 
-    function balanceOf(address _user) public view returns (uint256 balance_) {
-        uint256 balance = balances[_user];
-        return balance;
+    function balanceOf(address _user) public view returns (uint256) {
+        return balances[_user];
     }
 
-    function getTradingMode() public view returns (bool mode_) {
-        bool mode = false;
-        if (tradeFlag == 1 || dividendFlag == 1) {
-            mode = true;
-        } else {
-            mode = false;
-        }
-        return mode;
+    function getTradingMode() public pure returns (bool) {
+        if (tradeFlag == 1 || dividendFlag == 1) return true;
+
+        return false;
     }
 
     function addHistory(
@@ -169,10 +162,8 @@ contract GasContract {
     function getPayments(
         address _user
     ) public view returns (Payment[] memory payments_) {
-        require(
-            _user != address(0),
-            "Gas Contract - getPayments function - User must have a valid non zero address"
-        );
+        if (_user == address(0)) revert a1();
+
         return payments[_user];
     }
 
@@ -241,31 +232,22 @@ contract GasContract {
         address _userAddrs,
         uint256 _tier
     ) public onlyAdminOrOwner {
-        require(
-            _tier < 255,
-            "Gas Contract - addToWhitelist function -  tier level should not be greater than 255"
-        );
-        whitelist[_userAddrs] = _tier;
+        if (_tier > 255) revert a3();
+
         if (_tier > 3) {
-            whitelist[_userAddrs] -= _tier;
             whitelist[_userAddrs] = 3;
         } else if (_tier == 1) {
-            whitelist[_userAddrs] -= _tier;
             whitelist[_userAddrs] = 1;
-        } else if (_tier > 0 && _tier < 3) {
-            whitelist[_userAddrs] -= _tier;
+        } else if (_tier > 0) {
             whitelist[_userAddrs] = 2;
         }
-        uint256 wasLastAddedOdd = wasLastOdd;
-        if (wasLastAddedOdd == 1) {
-            wasLastOdd = 0;
-            isOddWhitelistUser[_userAddrs] = wasLastAddedOdd;
-        } else if (wasLastAddedOdd == 0) {
-            wasLastOdd = 1;
-            isOddWhitelistUser[_userAddrs] = wasLastAddedOdd;
+
+        if (wasLastOdd != 0 || wasLastOdd != 1) {
+            isOddWhitelistUser[_userAddrs] = wasLastOdd;
         } else {
-            revert("Contract hacked, imposible, call help");
+            revert a2();
         }
+
         emit AddedToWhitelist(_userAddrs, _tier);
     }
 
