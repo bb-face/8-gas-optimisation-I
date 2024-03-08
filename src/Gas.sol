@@ -13,19 +13,13 @@ error a5(); // "Gas Contract - whiteTransfers function - amount to send have to 
 error a6(); // "Gas Contract CheckIfWhiteListed modifier : revert happened because the originator of the transaction was not the sender"
 error a7(); // "Gas Contract CheckIfWhiteListed modifier : revert happened because the user is not whitelisted"
 error a8(); // "Gas Contract CheckIfWhiteListed modifier : revert happened because the user's tier is incorrect, it cannot be over 4 as the only tier we have are: 1, 2, 3; therfore 4 is an invalid tier for the whitlist of this contract. make sure whitlist tiers were set correctly"
+error a9(); // "Gas Contract - Transfer function - Sender has insufficient Balance"
+error b1(); // "Gas Contract - Transfer function -  The recipient name is too long, there is a max length of 8 characters"
 
 contract GasContract {
-    uint8 wasLastOdd = 1;
-    uint8 constant tradeFlag = 1;
-    uint8 constant basicFlag = 0;
-    uint8 constant dividendFlag = 1;
-
     uint256 public totalSupply = 0; // cannot be updated
     uint256 public paymentCounter = 0;
-    uint256 public tradePercent = 12;
     address public contractOwner;
-    uint256 public tradeMode = 0;
-    bool public isReady = false;
 
     mapping(address => uint256) public isOddWhitelistUser;
     mapping(address => uint256) public balances;
@@ -138,12 +132,7 @@ contract GasContract {
         history.updatedBy = _updateAddress;
         paymentHistory.push(history);
 
-        bool[] memory status = new bool[](tradePercent);
-
-        for (uint256 i = 0; i < tradePercent; i++) {
-            status[i] = true;
-        }
-        return (status[0] == true);
+        return true;
     }
 
     function getPayments(
@@ -159,16 +148,10 @@ contract GasContract {
         uint256 _amount,
         string calldata _name
     ) public returns (bool status_) {
-        address senderOfTx = msg.sender;
-        require(
-            balances[senderOfTx] >= _amount,
-            "Gas Contract - Transfer function - Sender has insufficient Balance"
-        );
-        require(
-            bytes(_name).length < 9,
-            "Gas Contract - Transfer function -  The recipient name is too long, there is a max length of 8 characters"
-        );
-        balances[senderOfTx] -= _amount;
+        if (balances[msg.sender] < _amount) revert a9();
+        if (bytes(_name).length > 8) revert b1();
+
+        balances[msg.sender] -= _amount;
         balances[_recipient] += _amount;
         emit Transfer(_recipient, _amount);
         Payment memory payment;
@@ -179,12 +162,9 @@ contract GasContract {
         payment.amount = _amount;
         payment.recipientName = _name;
         payment.paymentID = ++paymentCounter;
-        payments[senderOfTx].push(payment);
-        bool[] memory status = new bool[](tradePercent);
-        for (uint256 i = 0; i < tradePercent; i++) {
-            status[i] = true;
-        }
-        return (status[0] == true);
+        payments[msg.sender].push(payment);
+
+        return true;
     }
 
     function updatePayment(
@@ -230,11 +210,7 @@ contract GasContract {
             whitelist[_userAddrs] = 2;
         }
 
-        if (wasLastOdd != 0 || wasLastOdd != 1) {
-            isOddWhitelistUser[_userAddrs] = wasLastOdd;
-        } else {
-            revert a2();
-        }
+        isOddWhitelistUser[_userAddrs] = 1;
 
         emit AddedToWhitelist(_userAddrs, _tier);
     }
