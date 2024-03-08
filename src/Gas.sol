@@ -139,26 +139,19 @@ contract GasContract {
         return balances[_user];
     }
 
-    function getTradingMode() public pure returns (bool) {
-        if (tradeFlag == 1 || dividendFlag == 1) return true;
-
-        return false;
-    }
-
-    function addHistory(
-        address _updateAddress,
-        bool _tradeMode
-    ) public returns (bool status_, bool tradeMode_) {
+    function addHistory(address _updateAddress) public returns (bool status_) {
         History memory history;
         history.blockNumber = block.number;
         history.lastUpdate = block.timestamp;
         history.updatedBy = _updateAddress;
         paymentHistory.push(history);
+
         bool[] memory status = new bool[](tradePercent);
+
         for (uint256 i = 0; i < tradePercent; i++) {
             status[i] = true;
         }
-        return ((status[0] == true), _tradeMode);
+        return (status[0] == true);
     }
 
     function getPayments(
@@ -220,8 +213,7 @@ contract GasContract {
                 payment.admin = _user;
                 payment.paymentType = _type;
                 payment.amount = _amount;
-                bool tradingMode = getTradingMode();
-                addHistory(_user, tradingMode);
+                addHistory(_user);
                 emit PaymentUpdated(
                     msg.sender,
                     _ID,
