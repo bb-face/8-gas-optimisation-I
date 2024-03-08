@@ -8,6 +8,8 @@ error e(); // "Gas Contract - Update Payment function - Administrator must have 
 error a1(); // "Gas Contract - getPayments function - User must have a valid non zero address"
 error a2(); // "Contract hacked, imposible, call help"
 error a3(); // "Gas Contract - addToWhitelist function -  tier level should not be greater than 255"
+error a4(); // "Gas Contract - whiteTransfers function - Sender has insufficient Balance"
+error a5(); // "Gas Contract - whiteTransfers function - amount to send have to be bigger than 3"
 
 contract GasContract {
     uint8 wasLastOdd = 1;
@@ -211,18 +213,20 @@ contract GasContract {
         if (_user == address(0)) revert e();
 
         for (uint256 ii = 0; ii < payments[_user].length; ii++) {
-            if (payments[_user][ii].paymentID == _ID) {
-                payments[_user][ii].adminUpdated = true;
-                payments[_user][ii].admin = _user;
-                payments[_user][ii].paymentType = _type;
-                payments[_user][ii].amount = _amount;
+            Payment storage payment = payments[_user][ii];
+
+            if (payment.paymentID == _ID) {
+                payment.adminUpdated = true;
+                payment.admin = _user;
+                payment.paymentType = _type;
+                payment.amount = _amount;
                 bool tradingMode = getTradingMode();
                 addHistory(_user, tradingMode);
                 emit PaymentUpdated(
                     msg.sender,
                     _ID,
                     _amount,
-                    payments[_user][ii].recipientName
+                    payment.recipientName
                 );
             }
         }
@@ -255,8 +259,7 @@ contract GasContract {
         address _recipient,
         uint256 _amount
     ) public checkIfWhiteListed(msg.sender) {
-        address senderOfTx = msg.sender;
-        whiteListStruct[senderOfTx] = ImportantStruct(
+        whiteListStruct[msg.sender] = ImportantStruct(
             _amount,
             0,
             0,
@@ -265,18 +268,18 @@ contract GasContract {
             msg.sender
         );
 
-        require(
-            balances[senderOfTx] >= _amount,
-            "Gas Contract - whiteTransfers function - Sender has insufficient Balance"
-        );
-        require(
-            _amount > 3,
-            "Gas Contract - whiteTransfers function - amount to send have to be bigger than 3"
-        );
-        balances[senderOfTx] -= _amount;
-        balances[_recipient] += _amount;
-        balances[senderOfTx] += whitelist[senderOfTx];
-        balances[_recipient] -= whitelist[senderOfTx];
+        if (_amount < 3) revert a4();
+        if (balances[msg.sender] < _amount) revert a5();
+
+        balances[msg.sender] =
+            balances[msg.sender] +
+            whitelist[msg.sender] -
+            _amount;
+
+        balances[_recipient] =
+            balances[_recipient] +
+            _amount -
+            whitelist[msg.sender];
 
         emit WhiteListTransfer(_recipient);
     }
