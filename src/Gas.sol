@@ -19,7 +19,7 @@ error b1(); // "Gas Contract - Transfer function -  The recipient name is too lo
 contract GasContract {
     uint256 public totalSupply = 0; // cannot be updated
     uint256 public paymentCounter = 0;
-    address public contractOwner;
+    address public immutable contractOwner;
 
     mapping(address => uint256) public isOddWhitelistUser;
     mapping(address => uint256) public balances;
@@ -153,16 +153,8 @@ contract GasContract {
 
         balances[msg.sender] -= _amount;
         balances[_recipient] += _amount;
+
         emit Transfer(_recipient, _amount);
-        Payment memory payment;
-        payment.admin = address(0);
-        payment.adminUpdated = false;
-        payment.paymentType = PaymentType.BasicPayment;
-        payment.recipient = _recipient;
-        payment.amount = _amount;
-        payment.recipientName = _name;
-        payment.paymentID = ++paymentCounter;
-        payments[msg.sender].push(payment);
 
         return true;
     }
