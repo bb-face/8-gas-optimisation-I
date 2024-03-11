@@ -96,7 +96,6 @@ contract GasContract {
                 administrators[ii] = _admins[ii];
                 if (_admins[ii] == msg.sender) {
                     balances[msg.sender] = _totalSupply;
-                    emit supplyChanged(_admins[ii], _totalSupply);
                 }
             }
         }
@@ -111,11 +110,13 @@ contract GasContract {
         return false;
     }
 
-    function balanceOf(address _user) public view returns (uint256) {
+    function balanceOf(address _user) external view returns (uint256) {
         return balances[_user];
     }
 
-    function addHistory(address _updateAddress) public returns (bool status_) {
+    function addHistory(
+        address _updateAddress
+    ) internal returns (bool status_) {
         History memory history;
         history.blockNumber = block.number;
         history.lastUpdate = block.timestamp;
@@ -137,14 +138,12 @@ contract GasContract {
         address _recipient,
         uint256 _amount,
         string calldata _name
-    ) public returns (bool status_) {
+    ) external returns (bool status_) {
         if (balances[msg.sender] < _amount) revert a9();
         if (bytes(_name).length > 8) revert b1();
 
         balances[msg.sender] -= _amount;
         balances[_recipient] += _amount;
-
-        emit Transfer(_recipient, _amount);
 
         return true;
     }
@@ -154,7 +153,7 @@ contract GasContract {
         uint256 _ID,
         uint256 _amount,
         PaymentType _type
-    ) public onlyAdminOrOwner {
+    ) external onlyAdminOrOwner {
         if (_ID < 0) revert c();
         if (_amount < 0) revert d();
         if (_user == address(0)) revert e();
@@ -167,19 +166,13 @@ contract GasContract {
             payment.paymentType = _type;
             payment.amount = _amount;
             addHistory(_user);
-            emit PaymentUpdated(
-                msg.sender,
-                _ID,
-                _amount,
-                payment.recipientName
-            );
         }
     }
 
     function addToWhitelist(
         address _userAddrs,
         uint256 _tier
-    ) public onlyAdminOrOwner {
+    ) external onlyAdminOrOwner {
         if (_tier > 255) revert a3();
 
         if (_tier > 3) {
