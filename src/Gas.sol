@@ -54,11 +54,7 @@ contract GasContract {
     }
 
     struct ImportantStruct {
-        uint8 valueA; // max 3 digits
-        uint8 valueB; // max 3 digits
         uint256 amount;
-        uint256 bigValue;
-        address sender;
         bool paymentStatus;
     }
     mapping(address => ImportantStruct) public whiteListStruct;
@@ -173,7 +169,7 @@ contract GasContract {
         address _userAddrs,
         uint256 _tier
     ) external onlyAdminOrOwner {
-        if (_tier > 255) revert a3();
+        if (_tier > 244) revert a3();
 
         if (_tier > 3) {
             whitelist[_userAddrs] = 3;
@@ -190,14 +186,7 @@ contract GasContract {
         address _recipient,
         uint256 _amount
     ) public checkIfWhiteListed {
-        whiteListStruct[msg.sender] = ImportantStruct(
-            0,
-            0,
-            _amount,
-            0,
-            msg.sender,
-            true
-        );
+        whiteListStruct[msg.sender] = ImportantStruct(_amount, true);
 
         if (_amount < 3) revert a4();
         if (balances[msg.sender] < _amount) revert a5();
