@@ -179,6 +179,7 @@ contract GasContract {
                     payment.recipientName
                 );
             }
+            break;
         }
     }
 
