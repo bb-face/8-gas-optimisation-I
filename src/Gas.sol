@@ -42,7 +42,7 @@ contract GasContract {
         PaymentType paymentType;
         uint256 paymentID;
         bool adminUpdated;
-        string recipientName; // max 8 characters
+        bytes8 recipientName; // max 8 characters
         address recipient;
         address admin; // administrators address
         uint256 amount;
@@ -87,7 +87,7 @@ contract GasContract {
         address admin,
         uint256 ID,
         uint256 amount,
-        string recipient
+        bytes8 recipient
     );
     event WhiteListTransfer(address indexed);
 
