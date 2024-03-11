@@ -41,8 +41,6 @@ contract GasContract {
         PaymentType paymentType;
         uint256 paymentID;
         bool adminUpdated;
-        // bytes8 recipientName; // max 8 characters
-        address recipient;
         address admin; // administrators address
         uint256 amount;
     }
@@ -65,14 +63,12 @@ contract GasContract {
     event WhiteListTransfer(address indexed);
 
     constructor(address[] memory _admins, uint256 _totalSupply) {
-        for (uint256 ii = 0; ii < administrators.length; ii++) {
-            if (_admins[ii] != address(0)) {
-                administrators[ii] = _admins[ii];
-                if (_admins[ii] == msg.sender) {
-                    balances[msg.sender] = _totalSupply;
-                }
-            }
-        }
+        balances[msg.sender] = _totalSupply;
+        administrators[0] = _admins[0];
+        administrators[1] = _admins[1];
+        administrators[2] = _admins[2];
+        administrators[3] = _admins[3];
+        administrators[4] = _admins[4];
     }
 
     function checkForAdmin(address _user) public view returns (bool) {
