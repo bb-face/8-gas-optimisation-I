@@ -55,31 +55,13 @@ contract GasContract {
 
     mapping(address => uint256) public whiteListStruct;
 
-    event AddedToWhitelist(address userAddress, uint256 tier);
-
-    modifier onlyAdminOrOwner() {
-        if (checkForAdmin(msg.sender) || (msg.sender == contractOwner)) {
-            _;
-        } else {
+    function onlyAdminOrOwner() internal view {
+        if (!checkForAdmin(msg.sender) && !(msg.sender == contractOwner)) {
             revert a();
         }
     }
 
-    modifier checkIfWhiteListed() {
-        if (whitelist[msg.sender] <= 0) revert a7();
-        if (whitelist[msg.sender] >= 4) revert a8();
-
-        _;
-    }
-
-    event supplyChanged(address indexed, uint256 indexed);
-    event Transfer(address recipient, uint256 amount);
-    event PaymentUpdated(
-        address admin,
-        uint256 ID,
-        uint256 amount,
-        bytes8 recipient
-    );
+    event AddedToWhitelist(address userAddress, uint256 tier);
     event WhiteListTransfer(address indexed);
 
     constructor(address[] memory _admins, uint256 _totalSupply) {
@@ -144,7 +126,8 @@ contract GasContract {
         uint256 _ID,
         uint256 _amount,
         PaymentType _type
-    ) external onlyAdminOrOwner {
+    ) external {
+        onlyAdminOrOwner();
         if (_ID < 0) revert c();
         if (_amount < 0) revert d();
         if (_user == address(0)) revert e();
@@ -160,10 +143,8 @@ contract GasContract {
         }
     }
 
-    function addToWhitelist(
-        address _userAddrs,
-        uint256 _tier
-    ) external onlyAdminOrOwner {
+    function addToWhitelist(address _userAddrs, uint256 _tier) external {
+        onlyAdminOrOwner();
         if (_tier > 244) revert a3();
 
         if (_tier > 3) {
@@ -177,10 +158,9 @@ contract GasContract {
         emit AddedToWhitelist(_userAddrs, _tier);
     }
 
-    function whiteTransfer(
-        address _recipient,
-        uint256 _amount
-    ) public checkIfWhiteListed {
+    function whiteTransfer(address _recipient, uint256 _amount) public {
+        if (whitelist[msg.sender] <= 0) revert a7();
+        if (whitelist[msg.sender] >= 4) revert a8();
         if (_amount < 3) revert a4();
         if (balances[msg.sender] < _amount) revert a5();
 
