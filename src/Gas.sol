@@ -97,13 +97,9 @@ contract GasContract {
                 administrators[ii] = _admins[ii];
                 if (_admins[ii] == msg.sender) {
                     balances[msg.sender] = _totalSupply;
+                    emit supplyChanged(_admins[ii], _totalSupply);
                 } else {
                     balances[_admins[ii]] = 0;
-                }
-
-                if (_admins[ii] == msg.sender) {
-                    emit supplyChanged(_admins[ii], _totalSupply);
-                } else if (_admins[ii] != msg.sender) {
                     emit supplyChanged(_admins[ii], 0);
                 }
             }
