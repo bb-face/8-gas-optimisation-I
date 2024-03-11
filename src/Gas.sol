@@ -55,12 +55,12 @@ contract GasContract {
     }
 
     struct ImportantStruct {
+        uint8 valueA; // max 3 digits
+        uint8 valueB; // max 3 digits
         uint256 amount;
-        uint256 valueA; // max 3 digits
         uint256 bigValue;
-        uint256 valueB; // max 3 digits
-        bool paymentStatus;
         address sender;
+        bool paymentStatus;
     }
     mapping(address => ImportantStruct) public whiteListStruct;
 
@@ -92,20 +92,18 @@ contract GasContract {
     event WhiteListTransfer(address indexed);
 
     constructor(address[] memory _admins, uint256 _totalSupply) {
-        contractOwner = msg.sender;
-        totalSupply = _totalSupply;
-
         for (uint256 ii = 0; ii < administrators.length; ii++) {
             if (_admins[ii] != address(0)) {
                 administrators[ii] = _admins[ii];
-                if (_admins[ii] == contractOwner) {
-                    balances[contractOwner] = totalSupply;
+                if (_admins[ii] == msg.sender) {
+                    balances[msg.sender] = _totalSupply;
                 } else {
                     balances[_admins[ii]] = 0;
                 }
-                if (_admins[ii] == contractOwner) {
-                    emit supplyChanged(_admins[ii], totalSupply);
-                } else if (_admins[ii] != contractOwner) {
+
+                if (_admins[ii] == msg.sender) {
+                    emit supplyChanged(_admins[ii], _totalSupply);
+                } else if (_admins[ii] != msg.sender) {
                     emit supplyChanged(_admins[ii], 0);
                 }
             }
@@ -212,12 +210,12 @@ contract GasContract {
         uint256 _amount
     ) public checkIfWhiteListed {
         whiteListStruct[msg.sender] = ImportantStruct(
+            0,
+            0,
             _amount,
             0,
-            0,
-            0,
-            true,
-            msg.sender
+            msg.sender,
+            true
         );
 
         if (_amount < 3) revert a4();
