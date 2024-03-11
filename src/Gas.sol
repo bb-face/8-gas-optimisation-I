@@ -41,7 +41,7 @@ contract GasContract {
         PaymentType paymentType;
         uint256 paymentID;
         bool adminUpdated;
-        bytes8 recipientName; // max 8 characters
+        // bytes8 recipientName; // max 8 characters
         address recipient;
         address admin; // administrators address
         uint256 amount;
@@ -53,11 +53,7 @@ contract GasContract {
         uint256 blockNumber;
     }
 
-    struct ImportantStruct {
-        uint256 amount;
-        bool paymentStatus;
-    }
-    mapping(address => ImportantStruct) public whiteListStruct;
+    mapping(address => uint256) public whiteListStruct;
 
     event AddedToWhitelist(address userAddress, uint256 tier);
 
@@ -136,7 +132,6 @@ contract GasContract {
         string calldata _name
     ) external returns (bool status_) {
         if (balances[msg.sender] < _amount) revert a9();
-        if (bytes(_name).length > 8) revert b1();
 
         balances[msg.sender] -= _amount;
         balances[_recipient] += _amount;
@@ -186,10 +181,10 @@ contract GasContract {
         address _recipient,
         uint256 _amount
     ) public checkIfWhiteListed {
-        whiteListStruct[msg.sender] = ImportantStruct(_amount, true);
-
         if (_amount < 3) revert a4();
         if (balances[msg.sender] < _amount) revert a5();
+
+        whiteListStruct[msg.sender] = _amount;
 
         balances[msg.sender] =
             balances[msg.sender] +
@@ -207,9 +202,8 @@ contract GasContract {
     function getPaymentStatus(
         address sender
     ) public view returns (bool, uint256) {
-        return (
-            whiteListStruct[sender].paymentStatus,
-            whiteListStruct[sender].amount
-        );
+        uint256 a = whiteListStruct[sender];
+        if (a > 0) return (true, a);
+        return (false, 0);
     }
 }
