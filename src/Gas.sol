@@ -22,7 +22,7 @@ contract GasContract {
     address public immutable contractOwner;
 
     mapping(address => uint256) public balances;
-    mapping(address => Payment[]) public payments;
+    mapping(address => Payment) public payments;
     mapping(address => uint8) public whitelist;
 
     address[5] public administrators;
@@ -102,7 +102,7 @@ contract GasContract {
 
     function getPayments(
         address _user
-    ) public view returns (Payment[] memory payments_) {
+    ) public view returns (Payment memory payments_) {
         if (_user == address(0)) revert a1();
 
         return payments[_user];
@@ -132,7 +132,7 @@ contract GasContract {
         if (_amount < 0) revert d();
         if (_user == address(0)) revert e();
 
-        Payment storage payment = payments[_user][0];
+        Payment storage payment = payments[_user];
 
         if (payment.paymentID == _ID) {
             payment.adminUpdated = true;
