@@ -21,10 +21,9 @@ contract GasContract {
     uint256 public paymentCounter = 0;
     address public immutable contractOwner;
 
-    mapping(address => uint256) public isOddWhitelistUser;
     mapping(address => uint256) public balances;
     mapping(address => Payment[]) public payments;
-    mapping(address => uint256) public whitelist;
+    mapping(address => uint8) public whitelist;
 
     address[5] public administrators;
 
@@ -163,23 +162,20 @@ contract GasContract {
         if (_amount < 0) revert d();
         if (_user == address(0)) revert e();
 
-        for (uint256 ii = 0; ii < payments[_user].length; ii++) {
-            Payment storage payment = payments[_user][ii];
+        Payment storage payment = payments[_user][0];
 
-            if (payment.paymentID == _ID) {
-                payment.adminUpdated = true;
-                payment.admin = _user;
-                payment.paymentType = _type;
-                payment.amount = _amount;
-                addHistory(_user);
-                emit PaymentUpdated(
-                    msg.sender,
-                    _ID,
-                    _amount,
-                    payment.recipientName
-                );
-            }
-            break;
+        if (payment.paymentID == _ID) {
+            payment.adminUpdated = true;
+            payment.admin = _user;
+            payment.paymentType = _type;
+            payment.amount = _amount;
+            addHistory(_user);
+            emit PaymentUpdated(
+                msg.sender,
+                _ID,
+                _amount,
+                payment.recipientName
+            );
         }
     }
 
@@ -196,8 +192,6 @@ contract GasContract {
         } else if (_tier > 0) {
             whitelist[_userAddrs] = 2;
         }
-
-        isOddWhitelistUser[_userAddrs] = 1;
 
         emit AddedToWhitelist(_userAddrs, _tier);
     }
